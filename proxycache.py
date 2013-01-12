@@ -125,7 +125,7 @@ def proxy(client_sock, client_addr):
             print "Runtime Error:", message
             sys.exit(1)
 
-if __name__ == '__main__':
+def main():
     try:
         server_sock = socket(AF_INET, SOCK_STREAM)
         server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -143,3 +143,6 @@ if __name__ == '__main__':
         thread.start_new_thread(proxy, (clientsock, clientaddr))
         
     server_sock.close()
+
+if __name__ == '__main__':
+    sys.exit (main())
