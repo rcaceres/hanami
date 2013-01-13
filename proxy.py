@@ -36,7 +36,7 @@ class Proxy:
         self.server.bind((arg[0], arg[1]))
 
         # Listen for incoming connections
-        self.server_sock.listen(200)
+        self.server.listen(200)
 
         # Sockets from which are ready to be read
         self.inputs = [ server ]
