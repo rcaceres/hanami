@@ -19,11 +19,20 @@ import urllib2
 from socket import *
 
 BUFFER_SIZE = 4096
+LLIST_SIZE = 1049000
 debug = True
 
 class Proxy:
 
     def __init__(self):
+
+        # Create hashtable and LinkedList object for caching
+        self.cache = {}
+        self.llist = LinkedList()
+        
+        # Counters for usage reports
+        self.hitcount = 0
+        self.misscount = 0
         
         # Create a TCP/IP socket
         self.server = socket(AF_INET, SOCK_STREAM)
@@ -76,13 +85,32 @@ class Proxy:
         # content variable is an http header, a huge blob of words
         # Snag URL from header, it's all we need
         url = content.split(' ')[1]
-       
-        if debug:
-            print url
         
-        # Instead of using sockets to request data from remote server, we use urllib2 for simplicity and convenience
-        response = urllib2.urlopen(url).read()
-        self.content_queues[readsock].put(response)
+        print "Requesting: " + url
+
+        # If data is in cache, do not rerequest
+        if url in self.cache:
+            print "Cache hit!"
+            self.hitcount += 1
+            cached_content = cache[url].data
+            self.content_queues[readsock].put(cached_content)
+            
+            # Find the linked list node this url belongs to, and push it up to the front
+            shift_node = self.llist.get(url)
+            self.llist.push(shift_node)
+        
+        # If data is not in cache, request it
+        else:
+            print "Cache miss..."
+            
+            # Instead of using sockets to request data from remote server, we use urllib2 for simplicity and convenience
+            response = urllib2.urlopen(url).read()
+            self.content_queues[readsock].put(response)
+            
+            # Create and append a new node in the cache and linked list
+            new_node = Node(key=url, data=response, size=getsizeof(response))
+            self.cache[url] = new_node
+            self.llist.append(new_node)
 
         # Add socket to output channel so we can send it from our proxy to the browser
         if readsock not in self.outputs:
@@ -100,6 +128,7 @@ class Proxy:
         try:
             # Send content from remote server to browser client
             msg = self.content_queues[writesock].get()
+            print "Accessing site."
             writesock.send(msg)
 
         except Queue.Empty:
@@ -129,6 +158,88 @@ class Proxy:
             for writesock in writeable:
                 # If writeable socket is ready to be written to
                 self.on_write(writesock)
+
+class Node:
+    def __init__(self, prev=None, nex=None, size=None, key=None, data=None):
+        self.prev = prev
+        self.next = nex
+        self.size = size
+        self.key = key
+        self.data = data
+
+class LinkedList:
+    def __init__(self, head=None, tail=None, maxsize=LLIST_SIZE, currentsize=0):
+        self.count = 0
+        self.head = head
+        self.tail = tail
+        self.maxsize = maxsize
+        self.currentsize = currentsize
+
+    def append(self, node):
+        new_node = node
+
+        # Checks if cache has room
+        if self.currentsize + self.new_node.size < self.maxsize:
+
+            # Checks if linkedlist is empty
+            if not self.head:
+                self.head = new_node
+                self.tail = new_node
+            else:
+                temp = self.head
+                self.head = new_node
+                self.head.next = temp
+                temp.prev = new_node
+
+            # Increments size counter by new node's size
+            self.currentsize += new_node.size
+        
+        else:
+            # If there is no room, delete least recently used node (the tail), reattempt append
+            self.deleteTail()
+            self.append(new_node)
+
+        # Decrement number of nodes
+        self.count += 1
+
+    def deleteTail(self):
+        # Subtracts tail's size from overall size
+        self.currentsize -= self.tail.size
+
+        # Checks if it is the only element in the list
+        if self.count > 1:
+            temp = self.tail.prev
+            del cache[self.tail.key]
+            temp = self.tail
+        else:
+            self.head = None
+            self.tail = None
+            
+        # Decrement number of nodes
+        self.count -= 1
+
+    # Shifts node to the head since it is the new most recently used
+    def push(self, node):
+        # Checks if node is head or not; if not, then push is inconsequential
+        if node != self.head:
+            temp = self.head
+            self.head = node
+            self.head.next = temp
+            temp.prev = node
+    
+    # Finds a node given an URL, slow and needs reworking
+    def get(self, nodekey):
+        curr = self.head
+        
+        # Loops through every node in the linkedlist to find a match
+        while True:
+            if curr.key = nodekey:
+                return curr
+            else:
+                curr = curr.next
+            # Checks if loop has reached end of list and hasn't found a match
+            if not curr:
+                break
 
 if __name__ == '__main__':
     p = Proxy()
