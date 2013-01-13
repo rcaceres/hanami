@@ -1,6 +1,6 @@
 **hanami** is a tiny HTTP web proxy designed to work with your browser. It uses a recently-used caching algorithm to increase overall performance, it monitors usage statistics such as cache hits and misses, and it's designed to blacklist specific URLs. Originally multithreaded, this app was built with efficiency and speed in mind, and instead uses Selectors to monitor sockets. Give it a try.
 
-[![passing](https://travis-ci.org/[eddiefigueroa]/[hanami].png)](https://travis-ci.org/[eddiefigueroa]/[hanami])
+![passing](https://raw.github.com/travis-ci/travis-api/master/public/images/result/passing.png)
 
 ## Installation
 Currently there are no dependencies needed outside of standard Python 2.7.x.
@@ -23,7 +23,7 @@ blacklist = [
 Make sure to keep the websites in quotes, and delimit them with a comma.
 
 ## Future Versions
-To do in the future:
+To do:
 * Makefiles
 * Increase stability
 * Keyword filtering
