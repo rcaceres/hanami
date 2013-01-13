@@ -39,7 +39,7 @@ class Proxy:
         self.server.listen(200)
 
         # Sockets from which are ready to be read
-        self.inputs = [ server ]
+        self.inputs = [ self.server ]
 
         # Sockets from which are ready to be written to
         self.outputs = []
