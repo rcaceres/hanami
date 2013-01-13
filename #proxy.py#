@@ -32,9 +32,16 @@ class Proxy:
         return port, host
     
     def main(self):
+        break
+    
+    def if_accept(self):
+        break
 
+    def if_close(self):
+        break
 
-
+    def if_recv(self):
+        break
 
     def handler(self, client_sock):
         request = client_sock.recv(1049000)
