@@ -4,11 +4,23 @@ import argparse
 
 class Proxy:
 
-    def __init__(self, host, port):
+    def __init__(self):
         self.server_sock = socket(AF_INET, SOCK_STREAM)
         self.server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        self.server_sock.bind((host, port))
+        arg = self.getargs()
+        self.server_sock.bind((arg[1], arg[0]))
         self.server_sock.listen(300)
+
+    def getargs(self):
+        parser = argparse.ArgumentParser(description='Caching Web Proxy. Default host is localhost, default port is 1234')
+        parser.add_argument('-p', '--port', help = 'port', type=int)
+        parser.add_argument('-s', '--host', help = 'host')
+        args = parser.parse_args()
+        port = args.port
+        host = 'localhost'
+        if args.port: port = args.port
+        if args.host: host = args.host
+        return port, host
     
     def main(self):
         while True:
@@ -48,13 +60,5 @@ class Proxy:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Web proxy with caching. Default host is localhost, default port is 1234')
-    parser.add_argument('-p', '--port', help = 'port', type=int)
-    parser.add_argument('-s', '--host', help = 'host')
-    args = parser.parse_args()
-    port = args.port
-    host = 'localhost'
-    if args.port: port = args.port
-    if args.host: host = args.host
-    p = Proxy(host, port)
-    p.main()
+    p = Proxy()
+    sys.exit(p.main())
