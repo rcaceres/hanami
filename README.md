@@ -11,4 +11,11 @@ python hanami.py -p [port] -s [host]
 If you don't supply a port and host, by default it goes to 8080 and localhost. 
 
 ## Blacklisting
-If you need to blacklist websites, `blacklist.py` is made up of a python list of all the sites you want the proxy to ignore.
+If you need to blacklist websites, `blacklist.py` is made up of a python list of all the sites you want the proxy to ignore. It works like this:
+```
+blacklist = [ 
+	'http://www.example.com', 
+	'http://example2.com'
+]
+```
+Make sure to keep the websites in quotes, and delimit them with a comma.
