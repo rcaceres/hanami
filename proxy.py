@@ -1,8 +1,6 @@
 import os,sys,thread
 from socket import *
-
-HOST = 'localhost'
-PORT = 1337
+import argparse
 
 class Proxy:
 
@@ -50,5 +48,13 @@ class Proxy:
 
 
 if __name__ == '__main__':
-    p = Proxy(HOST, PORT)
+    parser = argparse.ArgumentParser(description='Web proxy with caching. Default host is localhost, default port is 1234')
+    parser.add_argument('-p', '--port', help = 'port', type=int)
+    parser.add_argument('-s', '--host', help = 'host')
+    args = parser.parse_args()
+    port = args.port
+    host = 'localhost'
+    if args.port: port = args.port
+    if args.host: host = args.host
+    p = Proxy(host, port)
     p.main()
