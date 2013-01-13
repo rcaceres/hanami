@@ -19,6 +19,7 @@ import urllib2
 from socket import *
 
 BUFFER_SIZE = 4096
+debug = True
 
 class Proxy:
 
@@ -74,8 +75,11 @@ class Proxy:
     def on_recv(self, readsock, content):
         # content variable is an http header, a huge blob of words
         # Snag URL from header, it's all we need
-        url = request.split(' ')[1]
-
+        url = content.split(' ')[1]
+       
+        if debug:
+            print url
+        
         # Instead of using sockets to request data from remote server, we use urllib2 for simplicity and convenience
         response = urllib2.urlopen(url).read()
         self.content_queues[readsock].put(response)
@@ -95,7 +99,7 @@ class Proxy:
     def on_write(self, writesock):
         try:
             # Send content from remote server to browser client
-            msg = self.content_queues[writesock].get_nowait()
+            msg = self.content_queues[writesock].get()
             writesock.send(msg)
 
         except Queue.Empty:
@@ -119,7 +123,7 @@ class Proxy:
                     if data:
                         self.on_recv(readsock, data)
                     else:
-                        self.on_close()
+                        self.on_close(readsock)
 
             # Outputs
             for writesock in writeable:
