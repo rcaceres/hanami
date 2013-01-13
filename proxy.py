@@ -1,33 +1,58 @@
-import os,sys,thread
-from socket import *
+import os
 import argparse
+import select
+import Queue
+from socket import *
+
+TIMEOUT = 1000
+READ_ONLY = select.POLLIN | select.POLLPRI | select.POLLHUP | select.POLLERR
+READ_WRITE = READ_ONLY | select.POLLOUT
 
 class Proxy:
 
     def __init__(self):
-        self.server_sock = socket(AF_INET, SOCK_STREAM)
-        self.server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        self.server = socket(AF_INET, SOCK_STREAM)
+        self.server.setblocking(0)
+        self.server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         arg = self.getargs()
-        self.server_sock.bind((arg[1], arg[0]))
+        self.server.bind((arg[1], arg[0]))
         self.server_sock.listen(300)
+        self.message_queues = {}
 
     def getargs(self):
         parser = argparse.ArgumentParser(description='Caching Web Proxy. Default host is localhost, default port is 1234')
         parser.add_argument('-p', '--port', help = 'port', type=int)
         parser.add_argument('-s', '--host', help = 'host')
         args = parser.parse_args()
-        port = args.port
+        port = 1234
         host = 'localhost'
         if args.port: port = args.port
         if args.host: host = args.host
         return port, host
     
     def main(self):
-        while True:
-            clientsock, clientaddr = self.server_sock.accept()
-            thread.start_new_thread(self.handler, (clientsock,)) 
-        self.server_sock.close()
+        poller = select.poll()
+        poller = register(server, READ_ONLY)
+        fd_to_socket = { server.fileno(): server }
 
+        while True:
+            print >>sys.stderr, '\nwaiting for the next event'
+            events = poller.poll(TIMEOUT)
+
+            for fd, flag in events:
+                s = fd_to_socket[fd]
+                
+                if flag & (select.POLLIN | select.POLLPRI):
+                    
+                    if s is self.server:
+                        client_sock, client_addr = s.accept()
+                        print >>sys.stderr, 'new connection from', client addr
+                        client_sock.setblocking(0)
+                        fd_to_socket[ client_sock.fileno() ] = client_sock
+                        poller.register(client_sock, READ_ONLY)
+                        self.message_queues[client_sock] = Queue.Queue()
+                    else:
+                        data = s.rev(102400)
 
     def handler(self, client_sock):
         request = client_sock.recv(1049000)
