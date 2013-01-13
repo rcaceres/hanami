@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 __doc__ = """Web Proxy.
 
 This module behaves as an HTTP proxy. It implements
@@ -19,9 +21,10 @@ import argparse
 import urllib2
 from socket import *
 from blacklist import blacklist
+from LinkedList import LinkedList
+from Node import Node
 
 BUFFER_SIZE = 4096
-LLIST_SIZE = 1049000
 debug = True
 
 class Proxy:
@@ -165,14 +168,6 @@ class Proxy:
             for writesock in writeable:
                 # If writeable socket is ready to be written to
                 self.on_write(writesock)
-
-class Node:
-    def __init__(self, prev=None, nex=None, size=None, key=None, data=None):
-        self.prev = prev
-        self.next = nex
-        self.size = size
-        self.key = key
-        self.data = data
 
 class LinkedList:
     def __init__(self, head=None, tail=None, maxsize=LLIST_SIZE, currentsize=0):
