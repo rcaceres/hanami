@@ -1,4 +1,4 @@
-Proxy with LRU-Cache Algorithm
+Caching Web Proxy
 ==============================
 
-Multi-threaded proxy implemented using python sockets. It has a small cache, and uses a Least-Recently Used Caching Algorithm (hashtable + linked list) to keep the cache up to date and limited in size.
+A Tiny HTTP web proxy designed to work with your browser. Developed on Arch Linux. It uses a recently-used caching algorithm to increase overall performance, it monitors usage statistics such as cache hits and misses, and it's designed to blacklist specific URLs. Originally multithreaded, this app was built with efficiency and speed in mind, and instead uses Selectors to monitor sockets.

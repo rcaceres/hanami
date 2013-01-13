@@ -6,16 +6,19 @@ GET methods. It has a least-recently used cache.
 2013/13/1 - Created by Eddie Figueroa
             * Added LRU-cache
             * Added debugging variables
-            * Added more documentation
+            * Added blacklisting
 """
 __version__ = "3.0.0"
 
 import select
+import ConfigParser
+import os
 import sys
 import Queue
 import argparse
 import urllib2
 from socket import *
+from blacklist import blacklist
 
 BUFFER_SIZE = 4096
 LLIST_SIZE = 1049000
@@ -28,6 +31,7 @@ class Proxy:
         # Create hashtable and LinkedList object for caching
         self.cache = {}
         self.llist = LinkedList()
+        self.blacklist = blacklist
         
         # Counters for usage reports
         self.hitcount = 0
@@ -87,34 +91,38 @@ class Proxy:
         
         print "Requesting: " + url + "\n"
 
-        # If data is in cache, do not rerequest
-        if url in self.cache:
-            print "Cache hit!"
-            self.hitcount += 1
-            cached_content = cache[url].data
-            self.content_queues[readsock].put(cached_content)
-            
-            # Find the linked list node this url belongs to, and push it up to the front
-            shift_node = self.llist.get(url)
-            self.llist.push(shift_node)
-        
-        # If data is not in cache, request it
-        else:
-            print "Cache miss..."
-            
-            # Instead of using sockets to request data from remote server, we use urllib2 for simplicity and convenience
-            response = urllib2.urlopen(url).read()
-            self.content_queues[readsock].put(response)
-            
-            # Create and append a new node in the cache and linked list
-            new_node = Node(key=url, data=response, size=sys.getsizeof(response))
-            self.cache[url] = new_node
-            self.llist.append(new_node)
+        if url not in self.blacklist:
 
-        # Add socket to output channel so we can send it from our proxy to the browser
-        if readsock not in self.outputs:
-            self.outputs.append(readsock)
-    
+            # If data is in cache, do not rerequest
+            if url in self.cache:
+                print "Cache hit!"
+                self.hitcount += 1
+                cached_content = cache[url].data
+                self.content_queues[readsock].put(cached_content)
+            
+                # Find the linked list node this url belongs to, and push it up to the front
+                shift_node = self.llist.get(url)
+                self.llist.push(shift_node)
+        
+            # If data is not in cache, request it
+            else:
+                print "Cache miss..."
+            
+                # Instead of using sockets to request data from remote server, we use urllib2 for simplicity and convenience
+                response = urllib2.urlopen(url).read()
+                self.content_queues[readsock].put(response)
+            
+                # Create and append a new node in the cache and linked list
+                new_node = Node(key=url, data=response, size=sys.getsizeof(response))
+                self.cache[url] = new_node
+                self.llist.append(new_node)
+
+            # Add socket to output channel so we can send it from our proxy to the browser
+            if readsock not in self.outputs:
+                self.outputs.append(readsock)
+        else:
+            print "That site has been blacklisted."
+
     def on_close(self, readsock):
         # Empty result is a closed connection
         if readsock in self.outputs:
