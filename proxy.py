@@ -1,15 +1,14 @@
 __doc__ = """Web Proxy.
 
 This module behaves as an HTTP proxy. It implements
-GET methods.
+GET methods. It has a least-recently used cache.
 
 2013/13/1 - Created by Eddie Figueroa
-            * Added very simple GET request
-            * Restructured to use Select module instead
-              of multithreading for efficiency
-            * Added support for optional flags
+            * Added LRU-cache
+            * Added debugging variables
+            * Added more documentation
 """
-__version__ = "2.0.0"
+__version__ = "3.0.0"
 
 import select
 import sys
@@ -86,7 +85,7 @@ class Proxy:
         # Snag URL from header, it's all we need
         url = content.split(' ')[1]
         
-        print "Requesting: " + url
+        print "Requesting: " + url + "\n"
 
         # If data is in cache, do not rerequest
         if url in self.cache:
@@ -108,7 +107,7 @@ class Proxy:
             self.content_queues[readsock].put(response)
             
             # Create and append a new node in the cache and linked list
-            new_node = Node(key=url, data=response, size=getsizeof(response))
+            new_node = Node(key=url, data=response, size=sys.getsizeof(response))
             self.cache[url] = new_node
             self.llist.append(new_node)
 
@@ -179,7 +178,7 @@ class LinkedList:
         new_node = node
 
         # Checks if cache has room
-        if self.currentsize + self.new_node.size < self.maxsize:
+        if self.currentsize + new_node.size < self.maxsize:
 
             # Checks if linkedlist is empty
             if not self.head:
@@ -233,7 +232,7 @@ class LinkedList:
         
         # Loops through every node in the linkedlist to find a match
         while True:
-            if curr.key = nodekey:
+            if curr.key == nodekey:
                 return curr
             else:
                 curr = curr.next
