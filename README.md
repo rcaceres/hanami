@@ -1,4 +1,4 @@
-**hanami** (花見) is a tiny HTTP web proxy designed to work with your browser. It uses a recently-used caching algorithm to increase overall performance, it monitors usage statistics such as cache hits and misses, and it's designed to blacklist specific URLs. Originally multithreaded, this app was built with efficiency and speed in mind, and instead uses Selectors to monitor sockets. Give it a try.
+**hanami** (花見) is a tiny high-performance HTTP web proxy designed to work with your browser. It uses a recently-used caching algorithm to increase overall performance, it monitors usage statistics such as cache hits and misses, and it's designed to blacklist specific URLs. Originally multithreaded, this app was built with efficiency and speed in mind, and instead uses Selectors to monitor sockets. Give it a try.
 
 ![passing](https://raw.github.com/travis-ci/travis-api/master/public/images/result/passing.png)
 
